@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>事件时序矛盾排查台</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>事件时序矛盾排查台</h1>
+  <div class="branch-bar">
+    <label>分支
+      <select id="branchSelect"></select>
+    </label>
+    <button id="forkBtn" title="从当前 main 最新版本分叉">新建分叉</button>
+    <button id="mergeBtn" title="把另一分支合入当前分支">合并分支…</button>
+    <button id="historyBtn">版本历史</button>
+    <button id="commitBtn" class="primary">提交版本</button>
+  </div>
+</header>
+
+<div id="banner" class="banner hidden"></div>
+
+<main class="layout">
+  <section class="panel">
+    <h2>时间轴 · 最紧可行界</h2>
+    <div class="tl-controls">
+      <label>缩放 <input type="range" id="zoomRange" min="4" max="60" value="18"></label>
+      <span id="tlHint" class="hint">点击事件可在右侧定位其约束</span>
+    </div>
+    <div id="timeline" class="timeline"></div>
+  </section>
+
+  <section class="panel">
+    <h2>事件（# 创建序号）</h2>
+    <div class="table-wrap">
+      <table id="eventTable">
+        <thead>
+          <tr><th>#</th><th>名称</th><th>下界(t)</th><th>上界(t)</th><th>最紧界</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <form id="eventForm" class="add-form">
+      <input type="text" name="name" placeholder="事件名称" required maxlength="100">
+      <input type="number" name="lower_bound" placeholder="下界(可空)">
+      <input type="number" name="upper_bound" placeholder="上界(可空)">
+      <button type="submit">添加事件</button>
+    </form>
+
+    <h2 class="rel-head">先后 / 间隔约束</h2>
+    <div class="table-wrap">
+      <table id="relationTable">
+        <thead>
+          <tr><th>#</th><th>A</th><th>关系</th><th>B</th><th>n</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <form id="relationForm" class="add-form">
+      <select name="a_ref" required></select>
+      <select name="kind">
+        <option value="earlier">A 早于 B（tA+1≤tB）</option>
+        <option value="later">A 晚于 B（tB+1≤tA）</option>
+        <option value="after_at_least">A 晚于 B 至少 n 分钟</option>
+        <option value="after_at_most">A 晚于 B 至多 n 分钟</option>
+      </select>
+      <select name="b_ref" required></select>
+      <input type="number" name="n" min="0" step="1" placeholder="n≥0"
+             class="n-input" value="1">
+      <button type="submit">添加约束</button>
+    </form>
+  </section>
+</main>
+
+<!-- 合并对话框 -->
+<div id="mergeModal" class="modal hidden">
+  <div class="modal-box wide">
+    <h2>三方合并（分叉版本 → 当前分支）</h2>
+    <div class="merge-controls">
+      <label>来源分支 <select id="mergeSource"></select></label>
+      <button id="mergeAnalyzeBtn" class="primary">分析合并</button>
+    </div>
+    <div id="mergeStatus" class="hint"></div>
+    <div id="mergeConflicts" class="conflict-list"></div>
+    <div class="modal-actions">
+      <button id="mergeConfirmBtn" class="primary">提交合并</button>
+      <button id="mergeCancelBtn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 版本历史对话框 -->
+<div id="historyModal" class="modal hidden">
+  <div class="modal-box">
+    <h2>版本历史</h2>
+    <ol id="historyList" class="history-list"></ol>
+    <div class="modal-actions">
+      <button id="historyCloseBtn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

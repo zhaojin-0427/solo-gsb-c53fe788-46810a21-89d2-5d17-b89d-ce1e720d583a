@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    container_name: temporal-console
+    ports:
+      - "8000:8000"
+    volumes:
+      - tconsole-data:/data
+    restart: unless-stopped
+
+volumes:
+  tconsole-data:
