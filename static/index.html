@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>事件时序矛盾排查台</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">⏱ 事件时序矛盾排查台</div>
+  <nav class="branch-tabs" id="branchTabs"></nav>
+  <div class="top-actions">
+    <input id="newBranchName" class="mini-input" placeholder="新分支名" maxlength="32">
+    <button id="btnNewBranch" class="btn">分叉新建</button>
+    <button id="btnMerge" class="btn">合并分支</button>
+    <button id="btnHistory" class="btn ghost">历史</button>
+  </div>
+</header>
+
+<div class="statusbar" id="statusBar"></div>
+
+<main class="layout">
+  <!-- 左：事件 -->
+  <section class="panel events-panel">
+    <h2>事件（整数分钟 t）
+      <span class="hint">每项时间范围是一个输入项（序号见徽章）</span>
+    </h2>
+    <form id="eventForm" class="add-form">
+      <input name="label" placeholder="事件名称" required maxlength="40">
+      <input name="lower" placeholder="下界(可空)" class="num" type="number" step="1">
+      <span class="range-sep">≤ t ≤</span>
+      <input name="upper" placeholder="上界(可空)" class="num" type="number" step="1">
+      <button class="btn primary" type="submit">添加事件</button>
+    </form>
+    <ul class="item-list" id="eventList"></ul>
+  </section>
+
+  <!-- 中：时间轴 -->
+  <section class="panel timeline-panel">
+    <h2>可行解时间轴
+      <span class="hint">色条为全体可行解的最紧上下界</span>
+    </h2>
+    <div class="timeline-toolbar">
+      <button id="btnZoomOut" class="btn tiny">−</button>
+      <button id="btnZoomIn" class="btn tiny">+</button>
+      <button id="btnFit" class="btn tiny">适应</button>
+      <span class="legend"><i class="dot conflict"></i> 矛盾项</span>
+    </div>
+    <div id="timelineScroll" class="timeline-scroll">
+      <svg id="timeline" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="timeline-detail" id="timelineDetail">
+      点击左侧事件或下方关系可在此定位；点击条目高亮其在时间轴上的位置。
+    </div>
+  </section>
+
+  <!-- 右：关系 -->
+  <section class="panel relations-panel">
+    <h2>时序关系（须指定先后方向）
+      <span class="hint">每条关系是一个输入项</span>
+    </h2>
+    <form id="relationForm" class="add-form rel-form">
+      <select name="a" required></select>
+      <select name="dir">
+        <option value="earlier">早于</option>
+        <option value="later" selected>晚于</option>
+        <option value="same">同一时刻于</option>
+        <option value="at_least">晚于…至少</option>
+        <option value="at_most">晚于…至多</option>
+      </select>
+      <select name="b" required></select>
+      <input name="n" class="num" type="number" min="0" step="1"
+             placeholder="n (非负整数)" style="display:none">
+      <span class="n-unit" style="display:none">分钟</span>
+      <button class="btn primary" type="submit">添加关系</button>
+    </form>
+    <div class="rel-semantics" id="relSemantics"></div>
+    <ul class="item-list" id="relationList"></ul>
+  </section>
+</main>
+
+<!-- 合并对话框 -->
+<div class="modal-mask" id="mergeMask" hidden>
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3>分支字段级三方合并</h3>
+      <button class="btn tiny" id="btnCloseMerge">✕</button>
+    </div>
+    <div class="merge-controls">
+      <label>源分支：
+        <select id="mergeSource"></select>
+      </label>
+      <button class="btn" id="btnMergePreview">预览合并</button>
+      <span class="hint" id="mergeBaseInfo"></span>
+    </div>
+    <div class="merge-body">
+      <div class="merge-col">
+        <h4>冲突（逐项选择）</h4>
+        <div id="mergeConflicts" class="merge-conflicts">暂无</div>
+      </div>
+      <div class="merge-col">
+        <h4>自动合入（无交叠改动）</h4>
+        <div id="mergeAuto" class="merge-auto">暂无</div>
+      </div>
+    </div>
+    <div class="merge-status" id="mergeStatus"></div>
+    <div class="modal-foot">
+      <button class="btn" id="btnMergeCancel">取消</button>
+      <button class="btn primary" id="btnMergeCommit">提交合并（同一事务复核）</button>
+    </div>
+  </div>
+</div>
+
+<!-- 历史对话框 -->
+<div class="modal-mask" id="historyMask" hidden>
+  <div class="modal">
+    <div class="modal-head"><h3>提交历史</h3>
+      <button class="btn tiny" id="btnCloseHistory">✕</button></div>
+    <ul id="historyList" class="history-list"></ul>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
